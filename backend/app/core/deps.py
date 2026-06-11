@@ -1,8 +1,14 @@
 import time
 import uuid
 from typing import Optional
+from collections import defaultdict
 
-import redis
+try:
+    import redis
+    _redis_available = True
+except ImportError:
+    _redis_available = False
+
 from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
@@ -99,9 +105,13 @@ class RateLimiter:
     def __init__(self, max_requests: int = 60, window_seconds: int = 60):
         self.max_requests = max_requests
         self.window_seconds = window_seconds
-        self._redis_client: Optional[redis.Redis] = None
+        self._redis_client: Optional["redis.Redis"] = None
+        self._use_redis = _redis_available
+        self._memory_store: dict = defaultdict(list)
 
-    def _get_client(self) -> redis.Redis:
+    def _get_client(self) -> "Optional[redis.Redis]":
+        if not self._use_redis:
+            return None
         if self._redis_client is None:
             try:
                 self._redis_client = redis.from_url(
@@ -110,33 +120,42 @@ class RateLimiter:
                     socket_connect_timeout=2,
                     socket_timeout=2,
                 )
-            except redis.ConnectionError:
-                raise HTTPException(
-                    status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-                    detail="Rate limiting service unavailable",
-                )
+                self._redis_client.ping()
+            except Exception:
+                self._use_redis = False
+                self._redis_client = None
         return self._redis_client
 
     def __call__(self, request: Request) -> None:
-        try:
-            client = self._get_client()
-            client_ip = request.client.host if request.client else "unknown"
-            key = f"rate_limit:{client_ip}:{request.url.path}"
-            now = time.time()
-            window_start = now - self.window_seconds
+        client_ip = request.client.host if request.client else "unknown"
+        key = f"rate_limit:{client_ip}:{request.url.path}"
+        now = time.time()
+        window_start = now - self.window_seconds
 
-            client.zremrangebyscore(key, 0, window_start)
-            request_count = client.zcard(key)
+        client = self._get_client()
+        if client is not None:
+            try:
+                client.zremrangebyscore(key, 0, window_start)
+                request_count = client.zcard(key)
+                if request_count is not None and request_count >= self.max_requests:
+                    raise HTTPException(
+                        status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                        detail="Too many requests. Please try again later.",
+                    )
+                client.zadd(key, {str(now): now})
+                client.expire(key, self.window_seconds)
+                return
+            except HTTPException:
+                raise
+            except Exception:
+                pass
 
-            if request_count is not None and request_count >= self.max_requests:
-                raise HTTPException(
-                    status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-                    detail="Too many requests. Please try again later.",
-                )
-
-            client.zadd(key, {str(now): now})
-            client.expire(key, self.window_seconds)
-        except HTTPException:
-            raise
-        except Exception:
-            pass
+        self._memory_store[key] = [
+            t for t in self._memory_store[key] if t > window_start
+        ]
+        if len(self._memory_store[key]) >= self.max_requests:
+            raise HTTPException(
+                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                detail="Too many requests. Please try again later.",
+            )
+        self._memory_store[key].append(now)

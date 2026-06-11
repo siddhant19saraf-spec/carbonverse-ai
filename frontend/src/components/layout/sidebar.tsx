@@ -48,8 +48,13 @@ const levelColors: Record<string, string> = {
   earth: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/50 dark:text-emerald-200",
 };
 
-function getLevelBadge(level: string) {
-  return levelColors[level] || levelColors.seedling;
+const levelNames: Record<number, string> = {
+  1: "seedling", 2: "sprout", 3: "sapling", 4: "tree", 5: "forest", 6: "earth",
+};
+
+function getLevelBadge(level: number | string) {
+  const name = typeof level === "number" ? levelNames[level] || "seedling" : level;
+  return levelColors[name] || levelColors.seedling;
 }
 
 function getInitials(name: string) {
@@ -133,7 +138,7 @@ export default function Sidebar({ user }: SidebarProps) {
                 getLevelBadge(user.green_level || "seedling")
               )}
             >
-              {user.green_level || "Seedling"}
+              {levelNames[user.green_level as number] || "Seedling"}
             </span>
             <span className="text-[11px] font-medium text-slate-400">
               {user.sustainability_score ?? 0} pts
