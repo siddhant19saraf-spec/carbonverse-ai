@@ -5,6 +5,14 @@
   Track, understand, and reduce your environmental impact with AI-powered insights
 </p>
 
+## Live Demo
+
+**Frontend:** https://carbonverse-ai.vercel.app
+
+**Backend API:** https://carbonverse-api.onrender.com/api/v1/docs
+
+[![Deploy Backend to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/siddhant19saraf-spec/carbonverse-ai)
+
 ## Architecture Overview
 
 ```
