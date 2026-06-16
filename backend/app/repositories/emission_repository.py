@@ -1,24 +1,19 @@
-from typing import Optional, List, Any, Dict
+from typing import Any
+
 from sqlalchemy.orm import Session
 from sqlalchemy import func, extract, cast, Date
+
+from app.constants import NATIONAL_AVERAGES_KG_PER_DAY
 from app.repositories.base import BaseRepository
 from app.models.emission import EmissionRecord
-from datetime import datetime, timedelta, date, timezone
-
-NATIONAL_AVERAGES_KG_PER_DAY = {
-    "transportation": 4.2,
-    "food": 2.8,
-    "electricity": 3.5,
-    "water": 0.5,
-    "waste": 1.2,
-}
+from datetime import datetime, timedelta, timezone
 
 
 class EmissionRepository(BaseRepository[EmissionRecord]):
     def __init__(self, db: Session):
         super().__init__(EmissionRecord, db)
 
-    def get_by_user(self, user_id: Any) -> List[EmissionRecord]:
+    def get_by_user(self, user_id: Any) -> list[EmissionRecord]:
         return (
             self.db.query(EmissionRecord)
             .filter(EmissionRecord.user_id == user_id)
@@ -26,17 +21,22 @@ class EmissionRepository(BaseRepository[EmissionRecord]):
             .all()
         )
 
-    def get_by_user_and_category(self, user_id: Any, category: str) -> List[EmissionRecord]:
+    def get_by_user_and_category(
+        self, user_id: Any, category: str
+    ) -> list[EmissionRecord]:
         return (
             self.db.query(EmissionRecord)
-            .filter(EmissionRecord.user_id == user_id, EmissionRecord.category == category)
+            .filter(
+                EmissionRecord.user_id == user_id,
+                EmissionRecord.category == category,
+            )
             .order_by(EmissionRecord.recorded_at.desc())
             .all()
         )
 
     def get_by_date_range(
         self, user_id: Any, date_from: datetime, date_to: datetime
-    ) -> List[EmissionRecord]:
+    ) -> list[EmissionRecord]:
         return (
             self.db.query(EmissionRecord)
             .filter(
@@ -48,7 +48,7 @@ class EmissionRepository(BaseRepository[EmissionRecord]):
             .all()
         )
 
-    def get_category_breakdown(self, user_id: Any) -> Dict[str, float]:
+    def get_category_breakdown(self, user_id: Any) -> dict[str, float]:
         rows = (
             self.db.query(
                 EmissionRecord.category,
@@ -60,7 +60,9 @@ class EmissionRepository(BaseRepository[EmissionRecord]):
         )
         return {row.category: float(row.total) for row in rows}
 
-    def get_daily_totals(self, user_id: Any, days: int) -> List[Dict[str, Any]]:
+    def get_daily_totals(
+        self, user_id: Any, days: int
+    ) -> list[dict[str, Any]]:
         now = datetime.now(timezone.utc)
         cutoff = now - timedelta(days=days)
         rows = (
@@ -76,9 +78,14 @@ class EmissionRepository(BaseRepository[EmissionRecord]):
             .order_by("day")
             .all()
         )
-        return [{"date": row.day.isoformat(), "total": float(row.total)} for row in rows]
+        return [
+            {"date": row.day.isoformat(), "total": float(row.total)}
+            for row in rows
+        ]
 
-    def get_weekly_totals(self, user_id: Any, weeks: int) -> List[Dict[str, Any]]:
+    def get_weekly_totals(
+        self, user_id: Any, weeks: int
+    ) -> list[dict[str, Any]]:
         now = datetime.now(timezone.utc)
         cutoff = now - timedelta(weeks=weeks)
         rows = (
@@ -100,7 +107,9 @@ class EmissionRepository(BaseRepository[EmissionRecord]):
             for row in rows
         ]
 
-    def get_monthly_totals(self, user_id: Any, months: int) -> List[Dict[str, Any]]:
+    def get_monthly_totals(
+        self, user_id: Any, months: int
+    ) -> list[dict[str, Any]]:
         now = datetime.now(timezone.utc)
         cutoff = now - timedelta(days=months * 30)
         rows = (
@@ -118,7 +127,11 @@ class EmissionRepository(BaseRepository[EmissionRecord]):
             .all()
         )
         return [
-            {"year": int(row.year), "month": int(row.month), "total": float(row.total)}
+            {
+                "year": int(row.year),
+                "month": int(row.month),
+                "total": float(row.total),
+            }
             for row in rows
         ]
 
@@ -133,7 +146,9 @@ class EmissionRepository(BaseRepository[EmissionRecord]):
     def get_average_daily_emission(self, user_id: Any) -> float:
         total = self.get_total_by_user(user_id)
         count = (
-            self.db.query(func.count(func.distinct(cast(EmissionRecord.recorded_at, Date))))
+            self.db.query(
+                func.count(func.distinct(cast(EmissionRecord.recorded_at, Date)))
+            )
             .filter(EmissionRecord.user_id == user_id)
             .scalar()
         )
@@ -141,5 +156,5 @@ class EmissionRepository(BaseRepository[EmissionRecord]):
             return 0.0
         return round(total / count, 2)
 
-    def get_national_category_averages(self) -> Dict[str, float]:
+    def get_national_category_averages(self) -> dict[str, float]:
         return NATIONAL_AVERAGES_KG_PER_DAY

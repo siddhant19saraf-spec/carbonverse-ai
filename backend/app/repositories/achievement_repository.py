@@ -1,7 +1,11 @@
-from typing import Optional, List, Any
+from typing import Any
+
+from sqlalchemy import func
 from sqlalchemy.orm import Session
+
 from app.repositories.base import BaseRepository
 from app.models.achievement import Achievement, UserAchievement
+from app.core.database import Base
 from datetime import datetime, timezone
 
 
@@ -9,7 +13,7 @@ class AchievementRepository(BaseRepository[Achievement]):
     def __init__(self, db: Session):
         super().__init__(Achievement, db)
 
-    def get_user_achievements(self, user_id: Any) -> List[UserAchievement]:
+    def get_user_achievements(self, user_id: Any) -> list[UserAchievement]:
         return (
             self.db.query(UserAchievement)
             .filter(UserAchievement.user_id == user_id)
@@ -38,9 +42,11 @@ class AchievementRepository(BaseRepository[Achievement]):
         self.db.refresh(ua)
         return ua
 
-    def check_and_award_achievements(self, user_id: Any, score: int) -> List[Achievement]:
+    def check_and_award_achievements(
+        self, user_id: Any, score: int
+    ) -> list[Achievement]:
         all_achievements = self.db.query(Achievement).all()
-        awarded = []
+        awarded: list[Achievement] = []
         for ach in all_achievements:
             existing = (
                 self.db.query(UserAchievement)
@@ -63,8 +69,5 @@ class AchievementRepository(BaseRepository[Achievement]):
             or 0
         )
 
-    def get_all_achievements(self) -> List[Achievement]:
+    def get_all_achievements(self) -> list[Achievement]:
         return self.db.query(Achievement).all()
-
-
-from sqlalchemy import func

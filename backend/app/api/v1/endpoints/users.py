@@ -1,9 +1,11 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
+
 from app.core.database import get_db
 from app.core.deps import get_current_active_user
+from app.core.security import get_password_hash
 from app.repositories.user_repository import UserRepository
-from app.schemas.user import UserResponse, UserUpdate
+from app.schemas.user import UserResponse, UserUpdate, ChangePasswordRequest
 
 router = APIRouter()
 
@@ -22,7 +24,6 @@ def update_profile(
     repo = UserRepository(db)
     update_dict = update_data.model_dump(exclude_unset=True)
     if "password" in update_dict:
-        from app.core.security import get_password_hash
         update_dict["hashed_password"] = get_password_hash(update_dict.pop("password"))
     updated = repo.update(current_user, update_dict)
     return updated

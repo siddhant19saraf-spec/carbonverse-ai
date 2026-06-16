@@ -1,24 +1,28 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from pydantic import BaseModel
+
 from app.core.database import get_db
 from app.core.deps import get_current_active_user
 from app.services.auth_service import AuthService, AuthenticationError
-from app.schemas.user import UserCreate, UserLogin, TokenResponse, RefreshTokenRequest, UserResponse
+from app.schemas.user import (
+    UserCreate,
+    UserLogin,
+    TokenResponse,
+    RefreshTokenRequest,
+    UserResponse,
+    ChangePasswordRequest,
+)
 
 router = APIRouter()
-
-
-class ChangePasswordRequest(BaseModel):
-    old_password: str
-    new_password: str
 
 
 @router.post("/register", response_model=UserResponse, status_code=201)
 def register(user_in: UserCreate, db: Session = Depends(get_db)):
     service = AuthService(db)
     try:
-        user = service.register(user_in.email, user_in.username, user_in.password, user_in.full_name)
+        user = service.register(
+            user_in.email, user_in.username, user_in.password, user_in.full_name
+        )
         return user
     except AuthenticationError as e:
         raise HTTPException(status_code=400, detail=e.detail)
@@ -56,7 +60,9 @@ def change_password(
 ):
     service = AuthService(db)
     try:
-        service.change_password(str(current_user.id), body.old_password, body.new_password)
+        service.change_password(
+            str(current_user.id), body.old_password, body.new_password
+        )
         return {"message": "Password changed successfully"}
     except AuthenticationError as e:
         raise HTTPException(status_code=400, detail=e.detail)

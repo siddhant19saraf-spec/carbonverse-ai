@@ -77,6 +77,7 @@ export interface Achievement {
   description: string;
   badge_icon: string;
   category: string;
+  threshold_score?: number;
 }
 
 export interface UserAchievement {
@@ -92,6 +93,9 @@ export interface Challenge {
   goal_type: string;
   goal_value: number;
   reward_score: number;
+  starts_at?: string;
+  ends_at?: string;
+  is_active?: boolean;
 }
 
 export interface UserChallenge {
@@ -134,7 +138,10 @@ export interface NationalComparison {
   user_total: number;
   national_total: number;
   difference_pct: number;
-  breakdown: Record<string, { user: number; national: number; difference_pct: number }>;
+  breakdown: Record<
+    string,
+    { user: number; national: number; difference_pct: number }
+  >;
 }
 
 export interface AdminUserAnalytics {
@@ -150,3 +157,23 @@ export interface AdminPlatformMetrics {
   total_achievements_unlocked: number;
   total_challenges_completed: number;
 }
+
+export interface AdminEmissionAnalytics {
+  total_by_category: Record<string, number>;
+  daily_totals: Array<{ date: string; total: number }>;
+  monthly_trend: Array<{ month: string; total: number }>;
+}
+
+export interface SystemHealth {
+  status: string;
+  uptime: string;
+  db_connections: number;
+  active_sessions: number;
+}
+
+export type EmissionCategory =
+  | "transportation"
+  | "food"
+  | "electricity"
+  | "water"
+  | "waste";

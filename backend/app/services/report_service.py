@@ -1,11 +1,16 @@
+import hashlib
 from datetime import datetime, timezone
 from io import BytesIO
-from sqlalchemy.orm import Session
+
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import inch
 from reportlab.lib.colors import HexColor
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+from reportlab.platypus import (
+    SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle,
+)
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from sqlalchemy.orm import Session
+
 from app.repositories.user_repository import UserRepository
 from app.repositories.emission_repository import EmissionRepository
 from app.schemas.report import ReportResponse
@@ -21,38 +26,70 @@ class ReportService:
         self, user_id: str, date_from, date_to, include_recommendations: bool = True
     ) -> bytes:
         user = self.user_repo.get(user_id)
-        records = self.emission_repo.get_by_date_range(user_id, date_from, date_to)
         breakdown = self.emission_repo.get_category_breakdown(user_id)
         total = sum(breakdown.values())
 
         buffer = BytesIO()
-        doc = SimpleDocTemplate(buffer, pagesize=A4, topMargin=0.5 * inch, bottomMargin=0.5 * inch)
+        doc = SimpleDocTemplate(
+            buffer, pagesize=A4, topMargin=0.5 * inch, bottomMargin=0.5 * inch
+        )
         styles = getSampleStyleSheet()
         story = []
 
         title_style = ParagraphStyle(
-            "TitleCustom", parent=styles["Title"],
-            fontSize=22, textColor=HexColor("#10b981"), spaceAfter=6,
+            "TitleCustom",
+            parent=styles["Title"],
+            fontSize=22,
+            textColor=HexColor("#10b981"),
+            spaceAfter=6,
         )
         heading_style = ParagraphStyle(
-            "HeadingCustom", parent=styles["Heading2"],
-            fontSize=14, textColor=HexColor("#065f46"), spaceAfter=8, spaceBefore=16,
+            "HeadingCustom",
+            parent=styles["Heading2"],
+            fontSize=14,
+            textColor=HexColor("#065f46"),
+            spaceAfter=8,
+            spaceBefore=16,
         )
 
         story.append(Paragraph("CarbonVerse AI", title_style))
         story.append(Paragraph("Sustainability Report", styles["Title"]))
         story.append(Spacer(1, 12))
 
-        story.append(Paragraph(f"User: {user.username if user else 'N/A'}", styles["Normal"]))
-        story.append(Paragraph(f"Email: {user.email if user else 'N/A'}", styles["Normal"]))
-        story.append(Paragraph(f"Report Period: {date_from} to {date_to}", styles["Normal"]))
-        story.append(Paragraph(f"Generated: {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')}", styles["Normal"]))
+        story.append(
+            Paragraph(f"User: {user.username if user else 'N/A'}", styles["Normal"])
+        )
+        story.append(
+            Paragraph(f"Email: {user.email if user else 'N/A'}", styles["Normal"])
+        )
+        story.append(
+            Paragraph(f"Report Period: {date_from} to {date_to}", styles["Normal"])
+        )
+        story.append(
+            Paragraph(
+                f"Generated: {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')}",
+                styles["Normal"],
+            )
+        )
         story.append(Spacer(1, 20))
 
         story.append(Paragraph("Emission Summary", heading_style))
-        story.append(Paragraph(f"Total Carbon Footprint: {total:.2f} kg CO2", styles["Normal"]))
-        story.append(Paragraph(f"Sustainability Score: {user.sustainability_score if user else 0}/100", styles["Normal"]))
-        story.append(Paragraph(f"Green Level: {user.green_level if user else 1}/5", styles["Normal"]))
+        story.append(
+            Paragraph(
+                f"Total Carbon Footprint: {total:.2f} kg CO2", styles["Normal"]
+            )
+        )
+        story.append(
+            Paragraph(
+                f"Sustainability Score: {user.sustainability_score if user else 0}/100",
+                styles["Normal"],
+            )
+        )
+        story.append(
+            Paragraph(
+                f"Green Level: {user.green_level if user else 1}/5", styles["Normal"]
+            )
+        )
         story.append(Spacer(1, 12))
 
         story.append(Paragraph("Category Breakdown", heading_style))
@@ -77,10 +114,12 @@ class ReportService:
 
         if include_recommendations:
             story.append(Paragraph("Personalized Recommendations", heading_style))
-            recommendations = []
+            recommendations: list[str] = []
             for cat, value in breakdown.items():
                 if value > total * 0.2:
-                    recommendations.append(f"Focus on reducing {cat} emissions - consider sustainable alternatives")
+                    recommendations.append(
+                        f"Focus on reducing {cat} emissions - consider sustainable alternatives"
+                    )
             recommendations.extend([
                 "Track your emissions daily for better insights",
                 "Set weekly reduction goals to stay motivated",
@@ -95,9 +134,9 @@ class ReportService:
     def generate_report_response(
         self, user_id: str, date_from, date_to, include_recommendations: bool = True
     ) -> ReportResponse:
-        report_bytes = self.generate_pdf_report(user_id, date_from, date_to, include_recommendations)
-
-        import hashlib
+        report_bytes = self.generate_pdf_report(
+            user_id, date_from, date_to, include_recommendations
+        )
         report_hash = hashlib.sha256(report_bytes).hexdigest()[:16]
 
         return ReportResponse(

@@ -1,6 +1,5 @@
 from pydantic_settings import BaseSettings
-from typing import List
-import os
+from pydantic import Field
 
 
 class Settings(BaseSettings):
@@ -20,7 +19,10 @@ class Settings(BaseSettings):
     def sqlalchemy_database_url(self) -> str:
         if self.DATABASE_URL:
             return self.DATABASE_URL
-        return f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_SERVER}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
+        return (
+            f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}"
+            f"@{self.POSTGRES_SERVER}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
+        )
 
     SECRET_KEY: str = "super-secret-key-change-in-production-2024-carbonverse"
     ALGORITHM: str = "HS256"
@@ -29,7 +31,7 @@ class Settings(BaseSettings):
 
     REDIS_URL: str = "redis://localhost:6379/0"
 
-    CORS_ORIGINS: List[str] = ["http://localhost:3000"]
+    CORS_ORIGINS: list[str] = Field(default=["http://localhost:3000"])
 
     RATE_LIMIT_REQUESTS: int = 100
     RATE_LIMIT_WINDOW: int = 60
@@ -40,9 +42,7 @@ class Settings(BaseSettings):
 
     ENVIRONMENT: str = "development"
 
-    class Config:
-        env_file = ".env"
-        case_sensitive = True
+    model_config = {"env_file": ".env", "case_sensitive": True}
 
 
 settings = Settings()

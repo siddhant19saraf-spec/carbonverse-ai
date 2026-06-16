@@ -1,10 +1,18 @@
 from datetime import datetime, date, timedelta, timezone
+
 from sqlalchemy.orm import Session
+
+from app.constants import NATIONAL_AVERAGES_KG_PER_DAY
 from app.repositories.emission_repository import EmissionRepository
 from app.repositories.audit_log_repository import AuditLogRepository
-from app.schemas.emission import EmissionCreate, EmissionRecordResponse, EmissionSummary, CarbonScoreResponse
+from app.schemas.emission import (
+    EmissionCreate,
+    EmissionRecordResponse,
+    EmissionSummary,
+    CarbonScoreResponse,
+)
 
-CARBON_FACTORS = {
+CARBON_FACTORS: dict[str, dict[str, float]] = {
     "transportation": {
         "car": 0.21, "bus": 0.09, "train": 0.04, "flight": 0.25,
         "bike": 0.0, "walk": 0.0, "motorcycle": 0.15, "ev": 0.05,
@@ -18,15 +26,7 @@ CARBON_FACTORS = {
     "waste": {"landfill": 0.5, "recycled": 0.1, "composted": 0.05},
 }
 
-NATIONAL_AVERAGES_KG_PER_DAY = {
-    "transportation": 4.2,
-    "food": 2.8,
-    "electricity": 3.5,
-    "water": 0.5,
-    "waste": 1.2,
-}
-
-SUGGESTIONS_BY_CATEGORY = {
+SUGGESTIONS_BY_CATEGORY: dict[str, list[str]] = {
     "transportation": [
         "Consider using public transit instead of driving",
         "Carpooling can reduce your carbon footprint by up to 75%",
@@ -59,6 +59,11 @@ SUGGESTIONS_BY_CATEGORY = {
     ],
 }
 
+UNIT_MULTIPLIERS: dict[str, float] = {
+    "km": 1, "miles": 1.609, "liter": 1, "kWh": 1,
+    "gallon": 3.785, "kg": 1, "meal": 1, "day": 1,
+}
+
 
 class EmissionService:
     def __init__(self, db: Session):
@@ -66,23 +71,28 @@ class EmissionService:
         self.emission_repo = EmissionRepository(db)
         self.audit_repo = AuditLogRepository(db)
 
-    def calculate_carbon_footprint(self, category: str, amount: float, unit: str, subcategory: str | None = None) -> float:
+    def calculate_carbon_footprint(
+        self,
+        category: str,
+        amount: float,
+        unit: str,
+        subcategory: str | None = None,
+    ) -> float:
         cat_factors = CARBON_FACTORS.get(category, {})
         if subcategory and subcategory in cat_factors:
             factor = cat_factors[subcategory]
         elif "default" in cat_factors:
             factor = cat_factors["default"]
         else:
-            factor = sum(cat_factors.values()) / len(cat_factors) if cat_factors else 0.5
-
-        unit_multipliers = {
-            "km": 1, "miles": 1.609, "liter": 1, "kWh": 1,
-            "gallon": 3.785, "kg": 1, "meal": 1, "day": 1,
-        }
-        multiplier = unit_multipliers.get(unit, 1)
+            factor = (
+                sum(cat_factors.values()) / len(cat_factors) if cat_factors else 0.5
+            )
+        multiplier = UNIT_MULTIPLIERS.get(unit, 1)
         return round(amount * factor * multiplier, 4)
 
-    def record_emission(self, user_id: str, data: EmissionCreate) -> EmissionRecordResponse:
+    def record_emission(
+        self, user_id: str, data: EmissionCreate
+    ) -> EmissionRecordResponse:
         carbon = self.calculate_carbon_footprint(
             data.category, data.amount, data.unit, data.subcategory
         )
@@ -99,22 +109,26 @@ class EmissionService:
         })
         self.audit_repo.log_action(
             user_id, "record_emission", "emission", record.id,
-            {"category": data.category, "carbon": carbon}, None, None
+            {"category": data.category, "carbon": carbon}, None, None,
         )
         return EmissionRecordResponse.model_validate(record)
 
     def get_user_emissions(self, user_id: str, days: int = 30) -> list:
         date_from = datetime.now(timezone.utc) - timedelta(days=days)
-        return self.emission_repo.get_by_date_range(user_id, date_from, datetime.now(timezone.utc))
+        return self.emission_repo.get_by_date_range(
+            user_id, date_from, datetime.now(timezone.utc)
+        )
 
     def get_emission_summary(self, user_id: str) -> EmissionSummary:
         total = self.emission_repo.get_total_by_user(user_id)
         breakdown = self.emission_repo.get_category_breakdown(user_id)
         daily_avg = self.emission_repo.get_average_daily_emission(user_id)
-        daily_totals = self.emission_repo.get_daily_totals(user_id, 30)
-        weekly_total = sum(d["total"] for d in self.emission_repo.get_weekly_totals(user_id, 4))
-        monthly_total = sum(d["total"] for d in self.emission_repo.get_monthly_totals(user_id, 3))
-
+        weekly_total = sum(
+            d["total"] for d in self.emission_repo.get_weekly_totals(user_id, 4)
+        )
+        monthly_total = sum(
+            d["total"] for d in self.emission_repo.get_monthly_totals(user_id, 3)
+        )
         return EmissionSummary(
             total_carbon=round(total, 2),
             category_breakdown={k: round(v, 2) for k, v in breakdown.items()},
@@ -145,13 +159,15 @@ class EmissionService:
         else:
             level = "Needs Improvement"
 
-        suggestions = []
+        suggestions: list[str] = []
         for cat, value in summary.category_breakdown.items():
             national = NATIONAL_AVERAGES_KG_PER_DAY.get(cat, 0)
             if value / 30 > national:
                 suggestions.extend(SUGGESTIONS_BY_CATEGORY.get(cat, [])[:2])
         if not suggestions:
-            suggestions.append("Great job! Keep maintaining your sustainable lifestyle.")
+            suggestions.append(
+                "Great job! Keep maintaining your sustainable lifestyle."
+            )
 
         return CarbonScoreResponse(
             score=score,
@@ -164,17 +180,28 @@ class EmissionService:
     def compare_with_national_average(self, user_id: str) -> dict:
         summary = self.get_emission_summary(user_id)
         national_total = sum(NATIONAL_AVERAGES_KG_PER_DAY.values()) * 30
-        breakdown = {}
+        breakdown: dict[str, dict[str, float]] = {}
         for cat, user_val in summary.category_breakdown.items():
             national_val = NATIONAL_AVERAGES_KG_PER_DAY.get(cat, 0) * 30
             breakdown[cat] = {
                 "user": round(user_val, 2),
                 "national": round(national_val, 2),
-                "difference_pct": round(((user_val - national_val) / national_val) * 100, 1) if national_val > 0 else 0,
+                "difference_pct": (
+                    round(((user_val - national_val) / national_val) * 100, 1)
+                    if national_val > 0
+                    else 0
+                ),
             }
         return {
             "user_total": summary.total_carbon,
             "national_total": round(national_total, 2),
-            "difference_pct": round(((summary.total_carbon - national_total) / national_total) * 100, 1) if national_total > 0 else 0,
+            "difference_pct": (
+                round(
+                    ((summary.total_carbon - national_total) / national_total) * 100,
+                    1,
+                )
+                if national_total > 0
+                else 0
+            ),
             "breakdown": breakdown,
         }

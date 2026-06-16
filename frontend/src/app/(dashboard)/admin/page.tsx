@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { useAuthContext } from "@/providers/AuthProvider";
+import { api } from "@/lib/api";
 import { AnalyticsCards } from "@/components/admin/analytics-cards";
 import { UserManagementTable } from "@/components/admin/user-management-table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -22,10 +23,8 @@ export default function AdminPage() {
 
   useEffect(() => {
     if (!tokens || user?.role !== "admin") return;
-    fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/api/v1/admin/system-health`, {
-      headers: { Authorization: `Bearer ${tokens.access_token}` },
-    })
-      .then((r) => r.json())
+    api
+      .get<{ status: string }>("/admin/system-health", tokens.access_token)
       .then((data) => setHealth(data.status || "unknown"))
       .catch(() => setHealth("error"));
   }, [tokens, user]);
@@ -48,7 +47,15 @@ export default function AdminPage() {
         </CardHeader>
         <CardContent>
           <div className="flex items-center gap-2">
-            <div className={`h-3 w-3 rounded-full ${health === "healthy" ? "bg-emerald-500" : health === "error" ? "bg-red-500" : "bg-yellow-500"}`} />
+            <div
+              className={`h-3 w-3 rounded-full ${
+                health === "healthy"
+                  ? "bg-emerald-500"
+                  : health === "error"
+                    ? "bg-red-500"
+                    : "bg-yellow-500"
+              }`}
+            />
             <span className="font-medium capitalize">{health}</span>
           </div>
         </CardContent>
