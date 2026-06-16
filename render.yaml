@@ -3,6 +3,7 @@ services:
     name: carbonverse-api
     runtime: python
     plan: free
+    rootDir: backend
     buildCommand: pip install -r requirements.txt
     startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
     envVars:
@@ -13,6 +14,6 @@ services:
       - key: ENVIRONMENT
         value: production
       - key: CORS_ORIGINS
-        value: '["https://carbonverse-ai.vercel.app"]'
+        value: '["https://frontend-mocha-six-92.vercel.app","https://frontend-53sbh9vel-siddhant19saraf-specs-projects.vercel.app"]'
       - key: LOG_LEVEL
         value: INFO
