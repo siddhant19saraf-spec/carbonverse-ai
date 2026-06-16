@@ -5,7 +5,6 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 
@@ -96,11 +95,7 @@ app.add_middleware(SecurityHeadersMiddleware)
 app.add_middleware(RequestTimingMiddleware)
 app.add_middleware(RequestLoggingMiddleware)
 
-if settings.ENVIRONMENT == "production":
-    app.add_middleware(
-        TrustedHostMiddleware,
-        allowed_hosts=["carbonverse.ai", "*.carbonverse.ai", "*.onrender.com"],
-    )
+
 
 app.include_router(api_router, prefix=settings.API_V1_PREFIX)
 
