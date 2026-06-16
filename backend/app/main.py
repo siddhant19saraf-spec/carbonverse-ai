@@ -23,9 +23,8 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info("Starting %s v%s", settings.APP_NAME, settings.APP_VERSION)
-    if settings.ENVIRONMENT != "production":
-        Base.metadata.create_all(bind=engine)
-        logger.info("Database tables ensured (dev mode)")
+    Base.metadata.create_all(bind=engine)
+    logger.info("Database tables ensured")
     yield
     logger.info("Shutting down application")
 
@@ -100,7 +99,7 @@ app.add_middleware(RequestLoggingMiddleware)
 if settings.ENVIRONMENT == "production":
     app.add_middleware(
         TrustedHostMiddleware,
-        allowed_hosts=["carbonverse.ai", "*.carbonverse.ai"],
+        allowed_hosts=["carbonverse.ai", "*.carbonverse.ai", "*.onrender.com"],
     )
 
 app.include_router(api_router, prefix=settings.API_V1_PREFIX)
