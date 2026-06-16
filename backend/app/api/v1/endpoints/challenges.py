@@ -14,4 +14,4 @@ def get_challenges(
     current_user=Depends(get_current_active_user),
 ):
     service = GamificationService(db)
-    return service.get_weekly_challenges(str(current_user.id))
+    return service.get_weekly_challenges(current_user.id)

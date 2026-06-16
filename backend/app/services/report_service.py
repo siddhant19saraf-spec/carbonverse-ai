@@ -1,4 +1,5 @@
 import hashlib
+import uuid
 from datetime import datetime, timezone
 from io import BytesIO
 
@@ -23,7 +24,7 @@ class ReportService:
         self.emission_repo = EmissionRepository(db)
 
     def generate_pdf_report(
-        self, user_id: str, date_from, date_to, include_recommendations: bool = True
+        self, user_id: uuid.UUID, date_from, date_to, include_recommendations: bool = True
     ) -> bytes:
         user = self.user_repo.get(user_id)
         breakdown = self.emission_repo.get_category_breakdown(user_id)
@@ -132,7 +133,7 @@ class ReportService:
         return buffer.getvalue()
 
     def generate_report_response(
-        self, user_id: str, date_from, date_to, include_recommendations: bool = True
+        self, user_id: uuid.UUID, date_from, date_to, include_recommendations: bool = True
     ) -> ReportResponse:
         report_bytes = self.generate_pdf_report(
             user_id, date_from, date_to, include_recommendations

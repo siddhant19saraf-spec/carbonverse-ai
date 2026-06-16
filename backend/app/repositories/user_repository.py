@@ -1,4 +1,5 @@
 from typing import Optional, List
+import uuid
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from app.repositories.base import BaseRepository
@@ -22,17 +23,17 @@ class UserRepository(BaseRepository[User]):
     def get_users_by_role(self, role: str) -> List[User]:
         return self.db.query(User).filter(User.role == role).all()
 
-    def update_sustainability_score(self, user_id: str, score: int):
+    def update_sustainability_score(self, user_id: uuid.UUID, score: int):
         user = self.get(user_id)
         if user:
             self.update(user, {"sustainability_score": score})
 
-    def update_green_level(self, user_id: str, level: int):
+    def update_green_level(self, user_id: uuid.UUID, level: int):
         user = self.get(user_id)
         if user:
             self.update(user, {"green_level": level})
 
-    def update_streak(self, user_id: str, streak: int):
+    def update_streak(self, user_id: uuid.UUID, streak: int):
         user = self.get(user_id)
         if user:
             self.update(user, {"streak_days": streak})

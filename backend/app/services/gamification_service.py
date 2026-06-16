@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta, timezone
+import uuid
 from sqlalchemy.orm import Session
 from app.models.achievement import Achievement, UserAchievement
 from app.models.challenge import Challenge, UserChallenge
@@ -70,7 +71,7 @@ class GamificationService:
             return 2
         return 1
 
-    def update_streak(self, user_id: str) -> int:
+    def update_streak(self, user_id: uuid.UUID) -> int:
         user = self.user_repo.get(user_id)
         if not user:
             return 0
@@ -91,17 +92,17 @@ class GamificationService:
             self.user_repo.update(user, {"streak_days": current_streak})
         return current_streak
 
-    def calculate_total_badges(self, user_id: str) -> int:
+    def calculate_total_badges(self, user_id: uuid.UUID) -> int:
         return self.achievement_repo.get_achievement_count(user_id)
 
-    def check_and_award_badges(self, user_id: str):
+    def check_and_award_badges(self, user_id: uuid.UUID):
         self._seed_achievements()
         user = self.user_repo.get(user_id)
         if not user:
             return
         self.achievement_repo.check_and_award_achievements(user_id, user.sustainability_score or 0)
 
-    def get_weekly_challenges(self, user_id: str) -> list:
+    def get_weekly_challenges(self, user_id: uuid.UUID) -> list:
         self._seed_challenges()
         user_challenges = self.challenge_repo.get_user_challenges(user_id)
         active_challenges = self.challenge_repo.get_active_challenges()
@@ -116,7 +117,7 @@ class GamificationService:
             challenge = self.challenge_repo.get(uc.challenge_id)
             if challenge:
                 result.append(UserChallengeResponse(
-                    id=str(uc.id),
+                    id=uc.id,
                     challenge=ChallengeResponse.model_validate(challenge),
                     progress=uc.progress,
                     completed=uc.completed,
@@ -124,7 +125,7 @@ class GamificationService:
                 ))
         return result
 
-    def get_gamification_state(self, user_id: str) -> GamificationState:
+    def get_gamification_state(self, user_id: uuid.UUID) -> GamificationState:
         user = self.user_repo.get(user_id)
         if not user:
             raise ValueError("User not found")

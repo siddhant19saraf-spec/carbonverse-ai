@@ -15,4 +15,4 @@ def predict_emissions(
     current_user=Depends(get_current_active_user),
 ):
     service = PredictionService(db)
-    return service.predict_emissions(str(current_user.id), request.months_ahead)
+    return service.predict_emissions(current_user.id, request.months_ahead)

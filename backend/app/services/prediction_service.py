@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta, date, timezone
+import uuid
 from sqlalchemy.orm import Session
 from app.repositories.emission_repository import EmissionRepository
 from app.schemas.prediction import PredictionPoint, PredictionResponse
@@ -25,7 +26,7 @@ class PredictionService:
         intercept = (sum_y - slope * sum_x) / n
         return (intercept, slope)
 
-    def predict_emissions(self, user_id: str, months_ahead: int = 3) -> PredictionResponse:
+    def predict_emissions(self, user_id: uuid.UUID, months_ahead: int = 3) -> PredictionResponse:
         daily_totals = self.emission_repo.get_daily_totals(user_id, 90)
 
         if not daily_totals:

@@ -14,4 +14,4 @@ def get_gamification_state(
     current_user=Depends(get_current_active_user),
 ):
     service = GamificationService(db)
-    return service.get_gamification_state(str(current_user.id))
+    return service.get_gamification_state(current_user.id)

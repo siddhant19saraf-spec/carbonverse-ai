@@ -1,4 +1,5 @@
 import logging
+import uuid
 from sqlalchemy.orm import Session
 from app.core.security import (
     verify_password,
@@ -82,7 +83,7 @@ class AuthService:
 
         return self.create_tokens(user)
 
-    def change_password(self, user_id: str, old_password: str, new_password: str):
+    def change_password(self, user_id: uuid.UUID, old_password: str, new_password: str):
         if len(new_password) < 6:
             raise AuthenticationError("New password must be at least 6 characters")
         user = self.user_repo.get(user_id)

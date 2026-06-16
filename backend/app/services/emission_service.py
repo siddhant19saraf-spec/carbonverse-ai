@@ -1,4 +1,5 @@
 from datetime import datetime, date, timedelta, timezone
+import uuid
 
 from sqlalchemy.orm import Session
 
@@ -91,7 +92,7 @@ class EmissionService:
         return round(amount * factor * multiplier, 4)
 
     def record_emission(
-        self, user_id: str, data: EmissionCreate
+        self, user_id: uuid.UUID, data: EmissionCreate
     ) -> EmissionRecordResponse:
         carbon = self.calculate_carbon_footprint(
             data.category, data.amount, data.unit, data.subcategory
@@ -113,13 +114,13 @@ class EmissionService:
         )
         return EmissionRecordResponse.model_validate(record)
 
-    def get_user_emissions(self, user_id: str, days: int = 30) -> list:
+    def get_user_emissions(self, user_id: uuid.UUID, days: int = 30) -> list:
         date_from = datetime.now(timezone.utc) - timedelta(days=days)
         return self.emission_repo.get_by_date_range(
             user_id, date_from, datetime.now(timezone.utc)
         )
 
-    def get_emission_summary(self, user_id: str) -> EmissionSummary:
+    def get_emission_summary(self, user_id: uuid.UUID) -> EmissionSummary:
         total = self.emission_repo.get_total_by_user(user_id)
         breakdown = self.emission_repo.get_category_breakdown(user_id)
         daily_avg = self.emission_repo.get_average_daily_emission(user_id)
@@ -137,7 +138,7 @@ class EmissionService:
             monthly_total=round(monthly_total, 2),
         )
 
-    def calculate_carbon_score(self, user_id: str) -> CarbonScoreResponse:
+    def calculate_carbon_score(self, user_id: uuid.UUID) -> CarbonScoreResponse:
         summary = self.get_emission_summary(user_id)
         daily_avg = summary.daily_average
         national_avg = sum(NATIONAL_AVERAGES_KG_PER_DAY.values())
@@ -177,7 +178,7 @@ class EmissionService:
             suggestions=suggestions[:5],
         )
 
-    def compare_with_national_average(self, user_id: str) -> dict:
+    def compare_with_national_average(self, user_id: uuid.UUID) -> dict:
         summary = self.get_emission_summary(user_id)
         national_total = sum(NATIONAL_AVERAGES_KG_PER_DAY.values()) * 30
         breakdown: dict[str, dict[str, float]] = {}

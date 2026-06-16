@@ -15,7 +15,7 @@ def record_emission(
     current_user=Depends(get_current_active_user),
 ):
     service = EmissionService(db)
-    return service.record_emission(str(current_user.id), data)
+    return service.record_emission(current_user.id, data)
 
 
 @router.get("/", response_model=list[EmissionRecordResponse])
@@ -25,7 +25,7 @@ def get_emissions(
     current_user=Depends(get_current_active_user),
 ):
     service = EmissionService(db)
-    records = service.get_user_emissions(str(current_user.id), days)
+    records = service.get_user_emissions(current_user.id, days)
     return records
 
 
@@ -35,7 +35,7 @@ def get_summary(
     current_user=Depends(get_current_active_user),
 ):
     service = EmissionService(db)
-    return service.get_emission_summary(str(current_user.id))
+    return service.get_emission_summary(current_user.id)
 
 
 @router.get("/score", response_model=CarbonScoreResponse)
@@ -44,7 +44,7 @@ def get_score(
     current_user=Depends(get_current_active_user),
 ):
     service = EmissionService(db)
-    return service.calculate_carbon_score(str(current_user.id))
+    return service.calculate_carbon_score(current_user.id)
 
 
 @router.get("/compare-national")
@@ -53,4 +53,4 @@ def compare_national(
     current_user=Depends(get_current_active_user),
 ):
     service = EmissionService(db)
-    return service.compare_with_national_average(str(current_user.id))
+    return service.compare_with_national_average(current_user.id)

@@ -19,7 +19,7 @@ def generate_report(
 ):
     service = ReportService(db)
     return service.generate_report_response(
-        str(current_user.id), request.date_from, request.date_to, request.include_recommendations
+        current_user.id, request.date_from, request.date_to, request.include_recommendations
     )
 
 
@@ -31,7 +31,7 @@ def download_report(
 ):
     service = ReportService(db)
     pdf_bytes = service.generate_pdf_report(
-        str(current_user.id), request.date_from, request.date_to, request.include_recommendations
+        current_user.id, request.date_from, request.date_to, request.include_recommendations
     )
     return StreamingResponse(
         BytesIO(pdf_bytes),

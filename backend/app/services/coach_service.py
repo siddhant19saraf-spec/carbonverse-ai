@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta, timezone
+import uuid
 from sqlalchemy.orm import Session
 from app.repositories.emission_repository import EmissionRepository
 from app.schemas.coach import CoachResponse, WeeklyInsight
@@ -67,7 +68,7 @@ class CoachService:
         day_of_year = datetime.now(timezone.utc).timetuple().tm_yday
         return DAILY_TIPS[day_of_year % len(DAILY_TIPS)]
 
-    def generate_coach_response(self, user_id: str, message: str, context: dict | None = None) -> CoachResponse:
+    def generate_coach_response(self, user_id: uuid.UUID, message: str, context: dict | None = None) -> CoachResponse:
         breakdown = self.emission_repo.get_category_breakdown(user_id)
         daily_totals = self.emission_repo.get_daily_totals(user_id, 14)
 
@@ -120,7 +121,7 @@ class CoachService:
 
         return CoachResponse(reply=reply, suggestions=suggestions)
 
-    def generate_weekly_insights(self, user_id: str) -> WeeklyInsight:
+    def generate_weekly_insights(self, user_id: uuid.UUID) -> WeeklyInsight:
         now = datetime.now(timezone.utc)
         week_start = now - timedelta(days=7)
         breakdown = self.emission_repo.get_category_breakdown(user_id)
@@ -152,7 +153,7 @@ class CoachService:
             next_week_goals=areas,
         )
 
-    def generate_sustainability_goals(self, user_id: str) -> list[str]:
+    def generate_sustainability_goals(self, user_id: uuid.UUID) -> list[str]:
         breakdown = self.emission_repo.get_category_breakdown(user_id)
         goals = []
         sorted_cats = sorted(breakdown.items(), key=lambda x: x[1], reverse=True)

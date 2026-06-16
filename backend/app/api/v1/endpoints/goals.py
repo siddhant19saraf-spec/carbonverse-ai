@@ -14,7 +14,7 @@ def get_goals(
     current_user=Depends(get_current_active_user),
 ):
     repo = SustainabilityGoalRepository(db)
-    return repo.get_by_user(str(current_user.id))
+    return repo.get_by_user(current_user.id)
 
 
 @router.post("/", response_model=SustainabilityGoalResponse, status_code=201)
@@ -26,7 +26,7 @@ def create_goal(
     repo = SustainabilityGoalRepository(db)
     goal = repo.create({
         **data.model_dump(),
-        "user_id": str(current_user.id),
+        "user_id": current_user.id,
         "current_reduction": 0.0,
         "is_completed": False,
     })

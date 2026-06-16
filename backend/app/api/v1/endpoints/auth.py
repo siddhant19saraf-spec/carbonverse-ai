@@ -61,7 +61,7 @@ def change_password(
     service = AuthService(db)
     try:
         service.change_password(
-            str(current_user.id), body.old_password, body.new_password
+            current_user.id, body.old_password, body.new_password
         )
         return {"message": "Password changed successfully"}
     except AuthenticationError as e:

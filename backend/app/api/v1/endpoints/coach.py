@@ -15,7 +15,7 @@ def chat_with_coach(
     current_user=Depends(get_current_active_user),
 ):
     service = CoachService(db)
-    return service.generate_coach_response(str(current_user.id), request.message, request.context)
+    return service.generate_coach_response(current_user.id, request.message, request.context)
 
 
 @router.get("/daily-tip")
@@ -29,7 +29,7 @@ def weekly_insights(
     current_user=Depends(get_current_active_user),
 ):
     service = CoachService(db)
-    return service.generate_weekly_insights(str(current_user.id))
+    return service.generate_weekly_insights(current_user.id)
 
 
 @router.get("/goals")
@@ -38,4 +38,4 @@ def get_coach_goals(
     current_user=Depends(get_current_active_user),
 ):
     service = CoachService(db)
-    return {"goals": service.generate_sustainability_goals(str(current_user.id))}
+    return {"goals": service.generate_sustainability_goals(current_user.id)}
