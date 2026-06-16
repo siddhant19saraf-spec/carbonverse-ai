@@ -1,3 +1,4 @@
+import uuid
 from pydantic import BaseModel, EmailStr, ConfigDict
 from typing import Optional
 from datetime import datetime
@@ -25,7 +26,7 @@ class UserUpdate(BaseModel):
 class UserResponse(UserBase):
     model_config = ConfigDict(from_attributes=True)
 
-    id: str
+    id: uuid.UUID
     role: str
     is_active: bool
     is_verified: bool

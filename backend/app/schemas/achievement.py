@@ -1,11 +1,12 @@
 from pydantic import BaseModel, ConfigDict
 from datetime import datetime
+import uuid
 
 
 class AchievementResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
-    id: str
+    id: uuid.UUID
     name: str
     description: str
     badge_icon: str
@@ -16,6 +17,6 @@ class AchievementResponse(BaseModel):
 class UserAchievementResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
-    id: str
+    id: uuid.UUID
     achievement: AchievementResponse
     unlocked_at: datetime

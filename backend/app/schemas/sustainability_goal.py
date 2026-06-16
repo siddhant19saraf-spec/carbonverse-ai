@@ -1,5 +1,6 @@
 from pydantic import BaseModel, ConfigDict
 from datetime import date, datetime
+import uuid
 
 
 class SustainabilityGoalBase(BaseModel):
@@ -17,8 +18,8 @@ class SustainabilityGoalCreate(SustainabilityGoalBase):
 class SustainabilityGoalResponse(SustainabilityGoalBase):
     model_config = ConfigDict(from_attributes=True)
 
-    id: str
-    user_id: str
+    id: uuid.UUID
+    user_id: uuid.UUID
     current_reduction: float
     is_completed: bool
     created_at: datetime

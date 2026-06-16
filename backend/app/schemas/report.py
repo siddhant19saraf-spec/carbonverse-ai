@@ -1,5 +1,6 @@
 from pydantic import BaseModel, ConfigDict
 from datetime import date, datetime
+import uuid
 
 
 class ReportRequest(BaseModel):
@@ -11,8 +12,8 @@ class ReportRequest(BaseModel):
 class ReportResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
-    id: str
-    user_id: str
+    id: uuid.UUID
+    user_id: uuid.UUID
     generated_at: datetime
     report_url: str
     date_from: date

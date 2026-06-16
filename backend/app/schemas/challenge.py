@@ -1,12 +1,13 @@
 from pydantic import BaseModel, ConfigDict
 from typing import Optional
 from datetime import datetime
+import uuid
 
 
 class ChallengeResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
-    id: str
+    id: uuid.UUID
     title: str
     description: str
     goal_type: str
@@ -20,7 +21,7 @@ class ChallengeResponse(BaseModel):
 class UserChallengeResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
-    id: str
+    id: uuid.UUID
     challenge: ChallengeResponse
     progress: float
     completed: bool

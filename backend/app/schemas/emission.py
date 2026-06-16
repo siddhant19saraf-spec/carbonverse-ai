@@ -1,6 +1,7 @@
 from pydantic import BaseModel, ConfigDict
 from typing import Optional, Dict, List
 from datetime import datetime
+import uuid
 
 
 class EmissionBase(BaseModel):
@@ -17,8 +18,8 @@ class EmissionCreate(EmissionBase):
 class EmissionRecordResponse(EmissionBase):
     model_config = ConfigDict(from_attributes=True)
 
-    id: str
-    user_id: str
+    id: uuid.UUID
+    user_id: uuid.UUID
     carbon_footprint: float
     recorded_at: datetime
     created_at: datetime
