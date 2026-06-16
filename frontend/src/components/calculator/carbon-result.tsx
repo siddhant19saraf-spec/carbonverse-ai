@@ -13,7 +13,7 @@ import { cn } from "@/lib/utils";
 import type { CarbonScore } from "@/types";
 
 const LEVEL_CONFIG: Record<
-  CarbonScore["level"],
+  string,
   { label: string; color: string; bg: string; ring: string }
 > = {
   excellent: {
@@ -48,6 +48,20 @@ const LEVEL_CONFIG: Record<
   },
 };
 
+const DEFAULT_LEVEL_CONFIG = {
+  label: "N/A",
+  color: "text-gray-400",
+  bg: "bg-gray-500/15",
+  ring: "ring-gray-500/50",
+};
+
+function normalizeLevel(level: string): string {
+  const lower = level.toLowerCase().trim();
+  if (lower === "below average") return "poor";
+  if (lower === "needs improvement") return "critical";
+  return lower;
+}
+
 const SUGGESTION_ICONS = [TreePine, Lightbulb, TrendingDown, BarChart3];
 
 interface CarbonResultProps {
@@ -55,7 +69,8 @@ interface CarbonResultProps {
 }
 
 export function CarbonResult({ score }: CarbonResultProps) {
-  const config = LEVEL_CONFIG[score.level];
+  const normalizedLevel = normalizeLevel(score.level ?? "");
+  const config = LEVEL_CONFIG[normalizedLevel] ?? DEFAULT_LEVEL_CONFIG;
   const nationalAverage = 4200;
   const comparison = nationalAverage - score.score;
   const comparisonPercent = Math.abs(
