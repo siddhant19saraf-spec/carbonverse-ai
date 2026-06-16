@@ -12,7 +12,7 @@ class ReportRequest(BaseModel):
 class ReportResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
-    id: uuid.UUID
+    id: str
     user_id: uuid.UUID
     generated_at: datetime
     report_url: str
