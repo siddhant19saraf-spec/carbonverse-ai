@@ -69,10 +69,14 @@ interface CarbonResultProps {
 }
 
 export function CarbonResult({ score }: CarbonResultProps) {
-  const normalizedLevel = normalizeLevel(score.level ?? "");
+  const safeScore = score?.score ?? 0;
+  const safeLevel = score?.level ?? "";
+  const safeSuggestions = score?.suggestions ?? [];
+
+  const normalizedLevel = normalizeLevel(safeLevel);
   const config = LEVEL_CONFIG[normalizedLevel] ?? DEFAULT_LEVEL_CONFIG;
   const nationalAverage = 4200;
-  const comparison = nationalAverage - score.score;
+  const comparison = nationalAverage - safeScore;
   const comparisonPercent = Math.abs(
     Math.round((comparison / nationalAverage) * 100)
   );
@@ -126,7 +130,7 @@ export function CarbonResult({ score }: CarbonResultProps) {
         className="flex flex-col items-center gap-2 py-4"
       >
         <span className={cn("text-6xl font-bold tabular-nums", config.color)}>
-          {score.score.toLocaleString()}
+          {safeScore.toLocaleString()}
         </span>
         <span className="text-sm text-white/50">kg CO₂e per year</span>
       </motion.div>
@@ -152,13 +156,13 @@ export function CarbonResult({ score }: CarbonResultProps) {
         </span>
       </motion.div>
 
-      {score.suggestions.length > 0 && (
+      {safeSuggestions.length > 0 && (
         <motion.div variants={itemVariants} className="space-y-3">
           <h3 className="text-sm font-medium text-white/70">
             Suggestions to Reduce
           </h3>
           <ul className="space-y-2">
-            {score.suggestions.map((suggestion, index) => {
+            {safeSuggestions.map((suggestion, index) => {
               const Icon =
                 SUGGESTION_ICONS[index % SUGGESTION_ICONS.length];
               return (

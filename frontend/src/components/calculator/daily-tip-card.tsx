@@ -8,14 +8,11 @@ import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
 
 interface DailyTip {
-  id: string;
-  title: string;
-  content: string;
-  category: string;
+  tip: string;
 }
 
 export function DailyTipCard() {
-  const [tip, setTip] = useState<DailyTip | null>(null);
+  const [tipText, setTipText] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -25,15 +22,9 @@ export function DailyTipCard() {
 
     try {
       const response = await api.get<DailyTip>("/tips/daily");
-      setTip(response);
+      setTipText(response?.tip ?? null);
     } catch {
-      setTip({
-        id: "fallback",
-        title: "Reduce, Reuse, Recycle",
-        content:
-          "One of the most effective ways to lower your carbon footprint is to follow the 3 Rs. Reduce your consumption, reuse items when possible, and recycle materials that can be processed again.",
-        category: "general",
-      });
+      setTipText("One of the most effective ways to lower your carbon footprint is to follow the 3 Rs. Reduce your consumption, reuse items when possible, and recycle materials that can be processed again.");
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);
@@ -111,24 +102,18 @@ export function DailyTipCard() {
                 <div className="h-3 w-3/5 rounded bg-white/5" />
               </div>
             </motion.div>
-          ) : tip ? (
+          ) : tipText ? (
             <motion.div
-              key={tip.id}
+              key="tip"
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.3 }}
               className="space-y-2"
             >
-              <h4 className="text-base font-medium text-white">
-                {tip.title}
-              </h4>
               <p className="text-sm leading-relaxed text-white/60">
-                {tip.content}
+                {tipText}
               </p>
-              <span className="inline-block rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-xs font-medium text-emerald-400">
-                {tip.category}
-              </span>
             </motion.div>
           ) : null}
         </AnimatePresence>
