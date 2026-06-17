@@ -97,8 +97,9 @@ export function ChallengesList({ token }: ChallengesListProps) {
       </CardHeader>
       <CardContent className="space-y-3">
         {challenges.map((uc, i) => {
-          const progressPercent = uc.challenge.goal_value > 0
-            ? Math.min((uc.progress / uc.challenge.goal_value) * 100, 100)
+          const goalValue = uc.challenge?.goal_value ?? 0;
+          const progressPercent = goalValue > 0
+            ? Math.min((uc.progress / goalValue) * 100, 100)
             : 0;
 
           return (
@@ -121,7 +122,7 @@ export function ChallengesList({ token }: ChallengesListProps) {
                   <div className="flex-1 space-y-2">
                     <div className="flex items-center gap-2">
                       <h4 className="text-sm font-medium text-white">
-                        {uc.challenge.title}
+                        {uc.challenge?.title ?? "Challenge"}
                       </h4>
                       <Badge
                         variant={uc.completed ? "default" : "secondary"}
@@ -134,15 +135,15 @@ export function ChallengesList({ token }: ChallengesListProps) {
                       </Badge>
                     </div>
                     <p className="text-xs text-muted-foreground line-clamp-2">
-                      {uc.challenge.description}
+                      {uc.challenge?.description ?? ""}
                     </p>
                     <div className="space-y-1.5">
                       <div className="flex items-center justify-between text-xs">
                         <span className="text-muted-foreground">
-                          {uc.progress} / {uc.challenge.goal_value}
+                          {uc.progress} / {goalValue}
                         </span>
                         <span className="font-medium text-amber-400">
-                          +{uc.challenge.reward_score} pts
+                          +{uc.challenge?.reward_score ?? 0} pts
                         </span>
                       </div>
                       <Progress

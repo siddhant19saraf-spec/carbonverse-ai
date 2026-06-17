@@ -72,7 +72,7 @@ function CustomLegend({ payload }: { payload?: TooltipPayloadItem[] }) {
 }
 
 export default function ComparisonChart({ comparison }: ComparisonChartProps) {
-  const breakdownEntries = Object.entries(comparison.breakdown);
+  const breakdownEntries = Object.entries(comparison.breakdown ?? {});
 
   const chartData = [
     { name: "Total", user: comparison.user_total, national: comparison.national_total },
@@ -83,7 +83,7 @@ export default function ComparisonChart({ comparison }: ComparisonChartProps) {
     })),
   ];
 
-  const diffPct = comparison.difference_pct;
+  const diffPct = comparison.difference_pct ?? 0;
   const isLower = diffPct < 0;
 
   return (

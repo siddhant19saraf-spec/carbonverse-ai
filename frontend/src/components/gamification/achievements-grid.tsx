@@ -58,7 +58,7 @@ export function AchievementsGrid({ token }: AchievementsGridProps) {
         api.get<UserAchievement[]>("/achievements/me", token),
       ]);
       setAchievements(allAchievements);
-      setUnlockedIds(new Set(userAchievements.map((ua) => ua.achievement.id)));
+        setUnlockedIds(new Set(userAchievements.map((ua) => ua.achievement?.id).filter(Boolean)));
     } catch (err) {
       const message = err instanceof Error ? err.message : "Failed to load achievements";
       setError(message);

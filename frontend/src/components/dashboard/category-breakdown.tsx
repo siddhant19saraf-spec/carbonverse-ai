@@ -61,11 +61,12 @@ function CustomTooltip({ active, payload }: CustomTooltipProps) {
 }
 
 export function CategoryBreakdown({ breakdown }: CategoryBreakdownProps) {
-  const data = Object.entries(breakdown)
+  const safeBreakdown = breakdown ?? {};
+  const data = Object.entries(safeBreakdown)
     .map(([name, value]) => ({ name, value }))
     .sort((a, b) => b.value - a.value);
 
-  const categories = Object.keys(breakdown);
+  const categories = Object.keys(safeBreakdown);
 
   return (
     <motion.div
@@ -78,6 +79,11 @@ export function CategoryBreakdown({ breakdown }: CategoryBreakdownProps) {
           <CardTitle className="text-lg font-semibold">Category Breakdown</CardTitle>
         </CardHeader>
         <CardContent>
+          {data.length === 0 ? (
+            <div className="flex items-center justify-center py-12 text-sm text-muted-foreground">
+              No emissions data yet. Record some emissions to see a breakdown.
+            </div>
+          ) : (
           <div className="flex flex-col items-center gap-6">
             <div className="h-[260px] w-[260px]">
               <ResponsiveContainer width="100%" height="100%">
@@ -122,6 +128,7 @@ export function CategoryBreakdown({ breakdown }: CategoryBreakdownProps) {
               ))}
             </div>
           </div>
+          )}
         </CardContent>
       </Card>
     </motion.div>

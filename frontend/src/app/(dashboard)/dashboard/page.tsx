@@ -94,16 +94,16 @@ export default function DashboardPage() {
           <h3 className="text-lg font-semibold mb-4">vs. National Average</h3>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             <div className="text-center">
-              <p className="text-2xl font-bold text-emerald-500">{comparison.user_total.toFixed(1)}kg</p>
+              <p className="text-2xl font-bold text-emerald-500">{(comparison.user_total ?? 0).toFixed(1)}kg</p>
               <p className="text-xs text-muted-foreground">Your Monthly</p>
             </div>
             <div className="text-center">
-              <p className="text-2xl font-bold text-blue-500">{comparison.national_total.toFixed(1)}kg</p>
+              <p className="text-2xl font-bold text-blue-500">{(comparison.national_total ?? 0).toFixed(1)}kg</p>
               <p className="text-xs text-muted-foreground">National Avg</p>
             </div>
             <div className="text-center">
-              <p className={`text-2xl font-bold ${comparison.difference_pct <= 0 ? "text-emerald-500" : "text-red-500"}`}>
-                {comparison.difference_pct > 0 ? "+" : ""}{comparison.difference_pct.toFixed(1)}%
+              <p className={`text-2xl font-bold ${(comparison.difference_pct ?? 0) <= 0 ? "text-emerald-500" : "text-red-500"}`}>
+                {(comparison.difference_pct ?? 0) > 0 ? "+" : ""}{(comparison.difference_pct ?? 0).toFixed(1)}%
               </p>
               <p className="text-xs text-muted-foreground">Difference</p>
             </div>

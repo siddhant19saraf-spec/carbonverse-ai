@@ -6,12 +6,16 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function formatCarbon(value: number): string {
-  if (value >= 1000) return `${(value / 1000).toFixed(1)}t`;
-  return `${value.toFixed(1)}kg`;
+  const n = typeof value === "number" && !isNaN(value) ? value : 0;
+  if (n >= 1000) return `${(n / 1000).toFixed(1)}t`;
+  return `${n.toFixed(1)}kg`;
 }
 
 export function formatDate(date: string | Date): string {
-  return new Date(date).toLocaleDateString("en-US", {
+  if (!date) return "N/A";
+  const d = new Date(date);
+  if (isNaN(d.getTime())) return "N/A";
+  return d.toLocaleDateString("en-US", {
     year: "numeric",
     month: "short",
     day: "numeric",
@@ -19,18 +23,20 @@ export function formatDate(date: string | Date): string {
 }
 
 export function getScoreColor(score: number): string {
-  if (score >= 80) return "text-emerald-500";
-  if (score >= 60) return "text-green-500";
-  if (score >= 40) return "text-yellow-500";
-  if (score >= 20) return "text-orange-500";
+  const n = typeof score === "number" && !isNaN(score) ? score : 0;
+  if (n >= 80) return "text-emerald-500";
+  if (n >= 60) return "text-green-500";
+  if (n >= 40) return "text-yellow-500";
+  if (n >= 20) return "text-orange-500";
   return "text-red-500";
 }
 
 export function getScoreLabel(score: number): string {
-  if (score >= 80) return "Excellent";
-  if (score >= 60) return "Good";
-  if (score >= 40) return "Average";
-  if (score >= 20) return "Below Average";
+  const n = typeof score === "number" && !isNaN(score) ? score : 0;
+  if (n >= 80) return "Excellent";
+  if (n >= 60) return "Good";
+  if (n >= 40) return "Average";
+  if (n >= 20) return "Below Average";
   return "Needs Improvement";
 }
 

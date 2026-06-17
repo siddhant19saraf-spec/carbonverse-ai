@@ -36,7 +36,8 @@ function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
 }
 
 export function EmissionTrends({ dailyTotals }: EmissionTrendsProps) {
-  const formatted = dailyTotals.map((d) => ({
+  const safeTotals = Array.isArray(dailyTotals) ? dailyTotals : [];
+  const formatted = safeTotals.map((d) => ({
     ...d,
     label: new Date(d.date).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
   }));
@@ -52,6 +53,11 @@ export function EmissionTrends({ dailyTotals }: EmissionTrendsProps) {
           <CardTitle className="text-lg font-semibold">Emission Trends</CardTitle>
         </CardHeader>
         <CardContent>
+          {formatted.length === 0 ? (
+            <div className="flex items-center justify-center h-[320px] text-sm text-muted-foreground">
+              No emissions data yet. Record some emissions to see trends.
+            </div>
+          ) : (
           <div className="h-[320px] w-full">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={formatted} margin={{ top: 5, right: 10, left: 0, bottom: 0 }}>
@@ -95,6 +101,7 @@ export function EmissionTrends({ dailyTotals }: EmissionTrendsProps) {
               </AreaChart>
             </ResponsiveContainer>
           </div>
+          )}
         </CardContent>
       </Card>
     </motion.div>

@@ -77,7 +77,7 @@ export default function PredictionsPage() {
                 <CardTitle className="text-sm font-medium text-muted-foreground">Confidence Score</CardTitle>
               </CardHeader>
               <CardContent>
-                <span className="text-2xl font-bold">{(prediction.confidence_score * 100).toFixed(0)}%</span>
+                <span className="text-2xl font-bold">{((prediction.confidence_score ?? 0) * 100).toFixed(0)}%</span>
               </CardContent>
             </Card>
             <Card>
@@ -87,7 +87,7 @@ export default function PredictionsPage() {
               <CardContent>
                 <div className="flex items-center gap-2">
                   <Target className="h-5 w-5 text-emerald-500" aria-hidden="true" />
-                  <span className="text-2xl font-bold">{prediction.projected_score}/100</span>
+                  <span className="text-2xl font-bold">{prediction.projected_score ?? 0}/100</span>
                 </div>
               </CardContent>
             </Card>

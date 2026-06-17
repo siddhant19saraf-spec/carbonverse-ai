@@ -6,9 +6,7 @@ import {
   BarChart3,
   Trophy,
   Target,
-  TrendingDown,
   TrendingUp,
-  Minus,
   CalendarDays,
   Loader2,
 } from "lucide-react";
@@ -16,12 +14,12 @@ import { cn } from "@/lib/utils";
 import { api } from "@/lib/api";
 
 interface WeeklyInsights {
+  week_start: string;
+  week_end: string;
   summary: string;
-  totalEmissions: number;
-  previousWeekEmissions: number;
   achievements: string[];
-  improvements: string[];
-  goals: string[];
+  areas_for_improvement: string[];
+  next_week_goals: string[];
 }
 
 export function WeeklyInsightsCard() {
@@ -43,14 +41,6 @@ export function WeeklyInsightsCard() {
 
     fetchInsights();
   }, []);
-
-  const weeklyChange =
-    insights
-      ? insights.totalEmissions - insights.previousWeekEmissions
-      : 0;
-  const weeklyChangePercent = insights?.previousWeekEmissions
-    ? Math.abs(Math.round((weeklyChange / insights.previousWeekEmissions) * 100))
-    : 0;
 
   const cardVariants = {
     hidden: { opacity: 0, y: 20 },
@@ -87,29 +77,12 @@ export function WeeklyInsightsCard() {
             Weekly Insights
           </h3>
         </div>
-        {insights && (
-          <div className="flex items-center gap-1.5">
-            {weeklyChange < 0 ? (
-              <TrendingDown className="h-4 w-4 text-emerald-400" />
-            ) : weeklyChange > 0 ? (
-              <TrendingUp className="h-4 w-4 text-red-400" />
-            ) : (
-              <Minus className="h-4 w-4 text-yellow-400" />
-            )}
-            <span
-              className={cn(
-                "text-xs font-medium",
-                weeklyChange < 0
-                  ? "text-emerald-400"
-                  : weeklyChange > 0
-                    ? "text-red-400"
-                    : "text-yellow-400"
-              )}
-            >
-              {weeklyChange <= 0 ? "-" : "+"}
-              {weeklyChangePercent}%
-            </span>
-          </div>
+        {insights?.week_start && insights?.week_end && (
+          <span className="text-xs text-white/40">
+            {new Date(insights.week_start).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+            {" - "}
+            {new Date(insights.week_end).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+          </span>
         )}
       </motion.div>
 
@@ -130,21 +103,15 @@ export function WeeklyInsightsCard() {
                   <BarChart3 className="h-5 w-5 text-blue-400" />
                 </div>
                 <div className="flex-1">
-                  <p className="text-xs text-white/40">This week total</p>
-                  <p className="text-lg font-semibold text-white">
-                    {insights.totalEmissions.toLocaleString()}{" "}
-                    <span className="text-sm font-normal text-white/50">
-                      kg CO₂e
-                    </span>
+                  <p className="text-xs text-white/40">Weekly Summary</p>
+                  <p className="text-sm leading-relaxed text-white/70">
+                    {insights.summary}
                   </p>
                 </div>
               </div>
-              <p className="mt-2 px-1 text-xs leading-relaxed text-white/50">
-                {insights.summary}
-              </p>
             </motion.div>
 
-            {insights.achievements.length > 0 && (
+            {Array.isArray(insights.achievements) && insights.achievements.length > 0 && (
               <motion.div variants={itemVariants} className="space-y-2">
                 <div className="flex items-center gap-1.5">
                   <Trophy className="h-3.5 w-3.5 text-yellow-400" />
@@ -153,7 +120,7 @@ export function WeeklyInsightsCard() {
                   </h4>
                 </div>
                 <ul className="space-y-1.5">
-                  {insights.achievements.map((item, i) => (
+                  {insights.achievements.map((item: string, i: number) => (
                     <motion.li
                       key={i}
                       initial={{ opacity: 0, x: -5 }}
@@ -169,7 +136,7 @@ export function WeeklyInsightsCard() {
               </motion.div>
             )}
 
-            {insights.improvements.length > 0 && (
+            {Array.isArray(insights.areas_for_improvement) && insights.areas_for_improvement.length > 0 && (
               <motion.div variants={itemVariants} className="space-y-2">
                 <div className="flex items-center gap-1.5">
                   <TrendingUp className="h-3.5 w-3.5 text-orange-400" />
@@ -178,7 +145,7 @@ export function WeeklyInsightsCard() {
                   </h4>
                 </div>
                 <ul className="space-y-1.5">
-                  {insights.improvements.map((item, i) => (
+                  {insights.areas_for_improvement.map((item: string, i: number) => (
                     <motion.li
                       key={i}
                       initial={{ opacity: 0, x: -5 }}
@@ -194,7 +161,7 @@ export function WeeklyInsightsCard() {
               </motion.div>
             )}
 
-            {insights.goals.length > 0 && (
+            {Array.isArray(insights.next_week_goals) && insights.next_week_goals.length > 0 && (
               <motion.div variants={itemVariants} className="space-y-2">
                 <div className="flex items-center gap-1.5">
                   <Target className="h-3.5 w-3.5 text-emerald-400" />
@@ -203,7 +170,7 @@ export function WeeklyInsightsCard() {
                   </h4>
                 </div>
                 <ul className="space-y-1.5">
-                  {insights.goals.map((item, i) => (
+                  {insights.next_week_goals.map((item: string, i: number) => (
                     <motion.li
                       key={i}
                       initial={{ opacity: 0, x: -5 }}
