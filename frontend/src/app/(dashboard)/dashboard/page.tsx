@@ -74,7 +74,7 @@ export default function DashboardPage() {
           )}
         </div>
         <div>
-          {score && <SustainabilityScore score={score.score} level={score.level} />}
+          {score && <SustainabilityScore score={score.score ?? 0} level={score.level ?? ""} />}
         </div>
       </div>
 

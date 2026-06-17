@@ -6,19 +6,21 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
 interface SustainabilityScoreProps {
-  score: number;
-  level: string;
+  score?: number | null;
+  level?: string | null;
 }
 
-function getScoreGradient(score: number): { stroke: string; glow: string; text: string } {
-  if (score >= 80) return { stroke: "#10b981", glow: "shadow-emerald-500/30", text: "text-emerald-400" };
-  if (score >= 60) return { stroke: "#22c55e", glow: "shadow-green-500/30", text: "text-green-400" };
-  if (score >= 40) return { stroke: "#eab308", glow: "shadow-yellow-500/30", text: "text-yellow-400" };
-  if (score >= 20) return { stroke: "#f97316", glow: "shadow-orange-500/30", text: "text-orange-400" };
+function getScoreGradient(score: unknown): { stroke: string; glow: string; text: string } {
+  const n = typeof score === "number" && !isNaN(score) ? score : 0;
+  if (n >= 80) return { stroke: "#10b981", glow: "shadow-emerald-500/30", text: "text-emerald-400" };
+  if (n >= 60) return { stroke: "#22c55e", glow: "shadow-green-500/30", text: "text-green-400" };
+  if (n >= 40) return { stroke: "#eab308", glow: "shadow-yellow-500/30", text: "text-yellow-400" };
+  if (n >= 20) return { stroke: "#f97316", glow: "shadow-orange-500/30", text: "text-orange-400" };
   return { stroke: "#ef4444", glow: "shadow-red-500/30", text: "text-red-400" };
 }
 
-function getLevelEmoji(level: string): string {
+function getLevelEmoji(level: unknown): string {
+  if (typeof level !== "string") return "🌍";
   const map: Record<string, string> = {
     excellent: "🌿",
     good: "🌱",
@@ -34,9 +36,12 @@ export function SustainabilityScore({ score, level }: SustainabilityScoreProps) 
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { once: true });
 
+  const safeScore = typeof score === "number" && !isNaN(score) ? score : 0;
+  const safeLevel = typeof level === "string" ? level : "";
+
   const radius = 70;
   const circumference = 2 * Math.PI * radius;
-  const { stroke, glow, text } = getScoreGradient(score);
+  const { stroke, glow, text } = getScoreGradient(safeScore);
 
   useEffect(() => {
     if (!inView) return;
@@ -47,12 +52,12 @@ export function SustainabilityScore({ score, level }: SustainabilityScoreProps) 
       const elapsed = now - start;
       const progress = Math.min(elapsed / duration, 1);
       const eased = 1 - Math.pow(1 - progress, 3);
-      setAnimatedScore(Math.round(score * eased));
+      setAnimatedScore(Math.round(safeScore * eased));
       if (progress < 1) animationFrame = requestAnimationFrame(animate);
     };
     animationFrame = requestAnimationFrame(animate);
     return () => cancelAnimationFrame(animationFrame);
-  }, [inView, score]);
+  }, [inView, safeScore]);
 
   const dashOffset = circumference - (animatedScore / 100) * circumference;
 
@@ -111,9 +116,9 @@ export function SustainabilityScore({ score, level }: SustainabilityScoreProps) 
           <div className="text-center space-y-1">
             <p className="text-sm font-medium text-muted-foreground">Current Level</p>
             <div className="flex items-center justify-center gap-2">
-              <span className="text-lg">{getLevelEmoji(level)}</span>
+              <span className="text-lg">{getLevelEmoji(safeLevel)}</span>
               <span className={cn("text-lg font-semibold capitalize", text)}>
-                {level}
+                {safeLevel}
               </span>
             </div>
           </div>

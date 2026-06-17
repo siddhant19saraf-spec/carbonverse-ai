@@ -8,6 +8,7 @@ import {
   Lightbulb,
   BarChart3,
   TreePine,
+  Leaf,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { CarbonScore } from "@/types";
@@ -48,33 +49,38 @@ const LEVEL_CONFIG: Record<
   },
 };
 
-const DEFAULT_LEVEL_CONFIG = {
+const FALLBACK_LEVEL = {
   label: "N/A",
-  color: "text-gray-400",
-  bg: "bg-gray-500/15",
-  ring: "ring-gray-500/50",
+  color: "text-green-400",
+  bg: "bg-green-500/15",
+  ring: "ring-green-500/50",
 };
 
-function normalizeLevel(level: string): string {
+function normalizeLevel(level: unknown): string {
+  if (typeof level !== "string") return "";
   const lower = level.toLowerCase().trim();
   if (lower === "below average") return "poor";
   if (lower === "needs improvement") return "critical";
   return lower;
 }
 
+function getLevelData(level: unknown) {
+  const normalized = normalizeLevel(level);
+  return LEVEL_CONFIG[normalized] ?? LEVEL_CONFIG["good"] ?? FALLBACK_LEVEL;
+}
+
 const SUGGESTION_ICONS = [TreePine, Lightbulb, TrendingDown, BarChart3];
 
 interface CarbonResultProps {
-  score: CarbonScore;
+  score: CarbonScore | null | undefined;
 }
 
 export function CarbonResult({ score }: CarbonResultProps) {
   const safeScore = score?.score ?? 0;
-  const safeLevel = score?.level ?? "";
-  const safeSuggestions = score?.suggestions ?? [];
+  const safeSuggestions = Array.isArray(score?.suggestions) ? score.suggestions : [];
 
-  const normalizedLevel = normalizeLevel(safeLevel);
-  const config = LEVEL_CONFIG[normalizedLevel] ?? DEFAULT_LEVEL_CONFIG;
+  const levelData = getLevelData(score?.level);
+
   const nationalAverage = 4200;
   const comparison = nationalAverage - safeScore;
   const comparisonPercent = Math.abs(
@@ -116,12 +122,12 @@ export function CarbonResult({ score }: CarbonResultProps) {
         <span
           className={cn(
             "rounded-full px-3 py-1 text-xs font-medium ring-1",
-            config.color,
-            config.bg,
-            config.ring
+            levelData.color,
+            levelData.bg,
+            levelData.ring
           )}
         >
-          {config.label}
+          {levelData.label}
         </span>
       </motion.div>
 
@@ -129,7 +135,7 @@ export function CarbonResult({ score }: CarbonResultProps) {
         variants={scoreVariants}
         className="flex flex-col items-center gap-2 py-4"
       >
-        <span className={cn("text-6xl font-bold tabular-nums", config.color)}>
+        <span className={cn("text-6xl font-bold tabular-nums", levelData.color)}>
           {safeScore.toLocaleString()}
         </span>
         <span className="text-sm text-white/50">kg CO₂e per year</span>
@@ -162,7 +168,7 @@ export function CarbonResult({ score }: CarbonResultProps) {
             Suggestions to Reduce
           </h3>
           <ul className="space-y-2">
-            {safeSuggestions.map((suggestion, index) => {
+            {safeSuggestions.map((suggestion: string, index: number) => {
               const Icon =
                 SUGGESTION_ICONS[index % SUGGESTION_ICONS.length];
               return (

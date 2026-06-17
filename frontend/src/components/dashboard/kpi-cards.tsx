@@ -92,7 +92,7 @@ const cardVariants = {
 };
 
 export function KpiCards({ summary, score }: KpiCardsProps) {
-  const trendPositive = score.score >= 50;
+  const trendPositive = (score?.score ?? 0) >= 50;
 
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
